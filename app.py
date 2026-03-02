@@ -14,12 +14,12 @@ st.sidebar.header("Filter Criteria")
 # Input for Stock Tickers (Comma separated)
 ticker_input = st.sidebar.text_area(
     "Enter Stock Tickers (e.g., AAPL, MSFT, TSLA)", 
-    "AAPL, MSFT, GOOGL, AMZN, NVDA, TSLA, JPM, JNJ, PG, KO"
+    "AAPL, MSFT, GOOGL, AMZN, NVDA, TSLA, JPM, JNJ, PG, KO, META, NFLX"
 )
 
 # Filter Inputs
 min_price = st.sidebar.number_input("Minimum Price", value=0)
-max_pe = st.sidebar.number_input("Max P/E Ratio", value=50.0)
+max_pe = st.sidebar.number_input("Max P/E Ratio", value=100.0)
 min_div_yield = st.sidebar.number_input("Min Dividend Yield (%)", value=0.0)
 
 # 3. Function to fetch data
@@ -31,13 +31,16 @@ def get_stock_data(tickers):
     tickers = [t.strip().upper() for t in tickers.split(',')]
     
     data = []
-    progress_bar = st.progress(0)
     
-    for i, ticker in enumerate(tickers):
+    for ticker in tickers:
         try:
             stock = yf.Ticker(ticker)
             info = stock.info
             
+            # Skip if no info
+            if not info:
+                continue
+                
             # Extract relevant fields
             row = {
                 'Ticker': ticker,
@@ -49,11 +52,9 @@ def get_stock_data(tickers):
                 'Sector': info.get('sector', 'N/A')
             }
             data.append(row)
-        except:
-            pass
-        
-        # Update progress
-        progress_bar.progress((i + 1) / len(tickers))
+        except Exception as e:
+            # Skip failed stocks
+            continue
             
     return pd.DataFrame(data)
 
